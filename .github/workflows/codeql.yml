@@ -1,1 +1,49 @@
+name: "CodeQL"
 
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  analyze:
+    name: Analyze
+
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      # matrix:
+      #   language: [ 'javascript-typescript' ]
+        # CodeQL supports [ 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'swift' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    # Perform CodeQL Analysis
+    - name: Perform CodeQL Analysis
+      id: codeql-analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+        # output: "${{ github.workspace }}/codeql-report/custom_name.sarif"
+
+    - name: Workspace
+      run: echo "${{ github.workspace }}"
+
+    - name: Print SARIF content
+      run: cat "$(dirname "${{ github.workspace }}")/results/javascript.sarif"
